@@ -1,6 +1,6 @@
 import streamlit as st
 from auth import login_page, signup_page
-from dashboard import show_dashboard
+from dashboard import render_dashboard as show_dashboard
 
 st.set_page_config(
     page_title="AtliQ HR Analytics",
