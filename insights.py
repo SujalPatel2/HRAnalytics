@@ -1,11 +1,11 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 import pandas as pd
 
 
 def render_ai_insights(df: pd.DataFrame):
     st.header("🤖 AI-Powered HR Insights")
-    st.caption("Gemini analyzes your attendance data and generates actionable HR observations.")
+    st.caption("Llama 3 (via Groq) analyzes your attendance data and generates actionable HR observations.")
     st.divider()
 
     total_emp = df["Employee Code"].nunique()
@@ -76,14 +76,15 @@ Format with bold headers. Keep it concise and professional."""
         prompt += f"\n\nSPECIAL FOCUS: {focus_map[focus_area]}"
 
     if run_btn:
-        with st.spinner("Gemini is analyzing your HR data..."):
+        with st.spinner("Llama 3 is analyzing your HR data..."):
             try:
-                # Get API key from Streamlit secrets
-                api_key = st.secrets["GEMINI_API_KEY"]
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-2.0-flash")
-                response = model.generate_content(prompt)
-                insights_text = response.text
+                client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+                response = client.chat.completions.create(
+                    model="llama3-8b-8192",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=1000,
+                )
+                insights_text = response.choices[0].message.content
 
                 st.success("✅ Analysis Complete!")
                 st.divider()
@@ -101,7 +102,7 @@ Format with bold headers. Keep it concise and professional."""
                                    mime="text/plain")
             except Exception as e:
                 st.error(f"Error calling AI: {str(e)}")
-                st.info("Make sure GEMINI_API_KEY is set in Streamlit secrets.")
+                st.info("Make sure GROQ_API_KEY is set in Streamlit secrets.")
     else:
         st.info("👆 Click **Generate Insights** to get AI-powered analysis of your data.")
         c1, c2, c3 = st.columns(3)
