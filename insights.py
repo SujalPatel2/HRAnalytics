@@ -81,7 +81,7 @@ Format with bold headers. Keep it concise and professional."""
                 # Get API key from Streamlit secrets
                 api_key = st.secrets["GEMINI_API_KEY"]
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model = genai.GenerativeModel("gemini-2.0-flash")
                 response = model.generate_content(prompt)
                 insights_text = response.text
 
