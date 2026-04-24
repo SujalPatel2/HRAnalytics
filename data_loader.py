@@ -3,7 +3,6 @@ import streamlit as st
 
 ATTENDANCE_SHEETS = ["Apr 2022", "May 2022", "June 2022"]
 
-
 @st.cache_data(show_spinner="Loading attendance data...")
 def load_attendance(file_path: str) -> pd.DataFrame:
     all_months = []
