@@ -156,7 +156,7 @@ def render_absenteeism_alerts(df: pd.DataFrame):
         display_df = at_risk[["Name", "Employee Code", "Attendance %", "Sick", "LWP", "Total_Working"]].copy()
         display_df.columns = ["Name", "Emp Code", "Attendance %", "Sick Days", "LWP Days", "Working Days"]
         st.dataframe(
-            display_df.style.applymap(color_attendance, subset=["Attendance %"]),
+            display_df.style.map(color_attendance, subset=["Attendance %"]),
             use_container_width=True, hide_index=True,
         )
 
