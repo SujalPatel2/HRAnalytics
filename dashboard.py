@@ -7,7 +7,7 @@ from new_tabs import render_leave_breakdown, render_absenteeism_alerts, render_m
 from insights import render_ai_insights
 
 
-def render_dashboard(df: pd.DataFrame):
+def show_dashboard(df: pd.DataFrame):
     with st.sidebar:
         st.title("HR Analytics")
         st.caption("AtliQ Technologies · Apr–Jun 2022")
