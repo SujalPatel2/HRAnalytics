@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-ATTENDANCE_SHEETS = ["Apr 2022", "May 2022", "Jun 2022"]
+ATTENDANCE_SHEETS = ["Apr 2022", "May 2022", "June 2022"]
 
 
 @st.cache_data(show_spinner="Loading attendance data...")
