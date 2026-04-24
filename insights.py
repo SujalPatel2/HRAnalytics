@@ -1,11 +1,11 @@
 import streamlit as st
-import anthropic
+import google.generativeai as genai
 import pandas as pd
 
 
 def render_ai_insights(df: pd.DataFrame):
     st.header("🤖 AI-Powered HR Insights")
-    st.caption("Claude analyzes your attendance data and generates actionable HR observations.")
+    st.caption("Gemini analyzes your attendance data and generates actionable HR observations.")
     st.divider()
 
     total_emp = df["Employee Code"].nunique()
@@ -22,16 +22,11 @@ def render_ai_insights(df: pd.DataFrame):
     low_att = emp_att[emp_att["att_pct"] < 70][["Name", "att_pct"]].to_dict("records")
 
     monthly = (
-        df.groupby("Month")
-        .agg(
-            present_pct=("Status", lambda x: round(
-                (x == "P").sum() / max(len(x), 1) * 100, 1)),
-            wfh_pct=("Status", lambda x: round(
-                (x == "WFH").sum() / max(len(x), 1) * 100, 1)),
-            sl_pct=("Status", lambda x: round(
-                (x == "SL").sum() / max(len(x), 1) * 100, 1)),
-        )
-        .reset_index()
+        df.groupby("Month").agg(
+            present_pct=("Status", lambda x: round((x == "P").sum() / max(len(x), 1) * 100, 1)),
+            wfh_pct=("Status", lambda x: round((x == "WFH").sum() / max(len(x), 1) * 100, 1)),
+            sl_pct=("Status", lambda x: round((x == "SL").sum() / max(len(x), 1) * 100, 1)),
+        ).reset_index()
     )
 
     emp_sl = work_df.groupby("Name")["Status"].apply(
@@ -81,15 +76,14 @@ Format with bold headers. Keep it concise and professional."""
         prompt += f"\n\nSPECIAL FOCUS: {focus_map[focus_area]}"
 
     if run_btn:
-        with st.spinner("Claude is analyzing your HR data..."):
+        with st.spinner("Gemini is analyzing your HR data..."):
             try:
-                client = anthropic.Anthropic()
-                response = client.messages.create(
-                    model="claude-sonnet-4-20250514",
-                    max_tokens=1000,
-                    messages=[{"role": "user", "content": prompt}],
-                )
-                insights_text = response.content[0].text
+                # Get API key from Streamlit secrets
+                api_key = st.secrets["GEMINI_API_KEY"]
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel("gemini-1.5-flash")
+                response = model.generate_content(prompt)
+                insights_text = response.text
 
                 st.success("✅ Analysis Complete!")
                 st.divider()
@@ -107,7 +101,7 @@ Format with bold headers. Keep it concise and professional."""
                                    mime="text/plain")
             except Exception as e:
                 st.error(f"Error calling AI: {str(e)}")
-                st.info("Make sure ANTHROPIC_API_KEY is set in Streamlit secrets.")
+                st.info("Make sure GEMINI_API_KEY is set in Streamlit secrets.")
     else:
         st.info("👆 Click **Generate Insights** to get AI-powered analysis of your data.")
         c1, c2, c3 = st.columns(3)
