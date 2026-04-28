@@ -36,7 +36,7 @@ def show_dashboard():
         st.metric("Total Records", len(df))
         st.divider()
 
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("🚪 Logout", width='stretch'):
             st.session_state.authenticated = False
             st.session_state.page = "login"
             st.rerun()
@@ -80,7 +80,7 @@ def show_dashboard():
                           title="Daily Attendance Trend",
                           color_discrete_sequence=["#6366f1"])
             fig.update_layout(height=350, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
 
     # ── TAB 1: Employee Deep-Dive ──────────────────────────────────────────────
     with tabs[1]:
@@ -101,7 +101,7 @@ def show_dashboard():
                      title=f"{selected_emp} — Status Distribution", hole=0.4,
                      color_discrete_sequence=px.colors.qualitative.Set3)
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     # ── TAB 2: Heatmap ────────────────────────────────────────────────────────
     with tabs[2]:
@@ -116,7 +116,7 @@ def show_dashboard():
             fig = px.imshow(pivot, color_continuous_scale="Blues",
                             title="Attendance Heatmap (Blue = Present)", aspect="auto")
             fig.update_layout(height=600, paper_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("Date column not found — check data_loader.py")
 
@@ -139,7 +139,7 @@ def show_dashboard():
     # ── TAB 7: Raw Data ───────────────────────────────────────────────────────
     with tabs[7]:
         st.header("📋 Raw Attendance Data")
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(df, width='stretch', hide_index=True)
         st.download_button(
             "📥 Download CSV",
             data=df.to_csv(index=False),
