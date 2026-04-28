@@ -161,8 +161,7 @@ def login_page():
         password = st.text_input("Password", type="password", placeholder="Enter your password", key="login_pass")
         
         st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-        
-        if st.button("🔐  Sign In", key="login_btn", use_container_width=True):
+        if st.button("🔐  Sign In", key="login_btn", width='stretch'):
             if not username or not password:
                 st.error("Please fill in all fields.")
             elif authenticate(username, password):
@@ -176,7 +175,7 @@ def login_page():
         <div class="auth-switch">Don't have an account?</div>
         """, unsafe_allow_html=True)
         
-        if st.button("✨  Create Account", key="goto_signup", use_container_width=True):
+        if st.button("✨  Create Account", key="goto_signup", width='stretch'):
             st.session_state.page = "signup"
             st.rerun()
         
@@ -207,7 +206,7 @@ def signup_page():
         
         st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
         
-        if st.button("🚀  Create Account", key="signup_btn", use_container_width=True):
+        if st.button("🚀  Create Account", key="signup_btn", width='stretch'):
             if not all([full_name, username, password, confirm]):
                 st.error("Please fill in all fields.")
             elif password != confirm:
@@ -225,6 +224,6 @@ def signup_page():
         st.markdown("<hr class='auth-divider'>", unsafe_allow_html=True)
         st.markdown('<div class="auth-switch">Already have an account?</div>', unsafe_allow_html=True)
         
-        if st.button("← Back to Sign In", key="goto_login", use_container_width=True):
+        if st.button("← Back to Sign In", key="goto_login", width='stretch'):
             st.session_state.page = "login"
             st.rerun()

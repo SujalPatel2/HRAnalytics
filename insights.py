@@ -65,7 +65,7 @@ Format with bold headers. Keep it concise and professional."""
     with col2:
         st.write("")
         st.write("")
-        run_btn = st.button("✨ Generate Insights", type="primary", use_container_width=True)
+        run_btn = st.button("✨ Generate Insights", type="primary", width='stretch')
 
     focus_map = {
         "WFH Patterns": "Focus specifically on Work From Home trends. Are employees over-using WFH?",
