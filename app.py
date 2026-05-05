@@ -1,223 +1,99 @@
-"""
-app.py — AtliQ Technologies HR Analytics
-Main entry point: handles auth routing → dashboard
-"""
-
-import hashlib
-import json
-import os
 import streamlit as st
-
-from data_loader import load_data, VERSION
+from auth import login_page, signup_page
 from dashboard import show_dashboard
 
-# ── Page config ─────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="HR Analytics · AtliQ Technologies",
-    page_icon="📊",
+    page_title="AtliQ HR Analytics",
+    page_icon="🏢",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed"
 )
 
-# ── Global CSS ───────────────────────────────────────────────────────────────
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+# ── Custom Global CSS ──────────────────────────────────────────────────────────
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-    html, body, [class*="css"] { font-family: 'Inter', system-ui, sans-serif; }
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
 
-    /* Tab strip */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 4px;
-        background: #f8fafc;
-        border-radius: 10px;
-        padding: 4px;
-        border: 1px solid #e2e8f0;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 8px;
-        font-size: 12.5px;
-        font-weight: 500;
-        padding: 6px 14px;
-        color: #64748b;
-    }
-    .stTabs [aria-selected="true"] {
-        background: #ffffff !important;
-        color: #0f172a !important;
-        box-shadow: 0 1px 4px rgba(0,0,0,.08);
-    }
+/* Hide default Streamlit chrome on auth pages */
+.auth-mode header, .auth-mode footer { display: none !important; }
 
-    /* Sidebar */
-    [data-testid="stSidebar"] {
-        background: #f8fafc;
-        border-right: 1px solid #e2e8f0;
-    }
+/* Metric cards */
+div[data-testid="metric-container"] {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+div[data-testid="metric-container"] label {
+    color: #94a3b8 !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase;
+}
+div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
+    color: #f8fafc !important;
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+}
+div[data-testid="metric-container"] div[data-testid="stMetricDelta"] {
+    font-size: 0.8rem !important;
+}
 
-    /* Metric cards */
-    [data-testid="stMetric"] {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 16px;
-    }
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    border-right: 1px solid #334155;
+}
+section[data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+section[data-testid="stSidebar"] .stSelectbox label { color: #94a3b8 !important; }
 
-    /* Buttons */
-    .stButton > button {
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 13px;
-    }
-    .stButton > button[kind="primary"] {
-        background: #1d4ed8;
-        border-color: #1d4ed8;
-    }
+/* Tabs */
+div[data-testid="stTabs"] button {
+    font-weight: 500;
+    border-radius: 8px 8px 0 0;
+}
+div[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #6366f1 !important;
+    border-bottom: 2px solid #6366f1 !important;
+}
 
-    /* Hide Streamlit branding */
-    #MainMenu { visibility: hidden; }
-    footer    { visibility: hidden; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+/* DataFrames */
+div[data-testid="stDataFrame"] {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #334155;
+}
 
-# ── Auth helpers ─────────────────────────────────────────────────────────────
-USERS_FILE = "users.json"
+/* Main background */
+.main { background: #0f172a; }
+.block-container { padding-top: 1rem; }
 
-def _hash(pw: str) -> str:
-    return hashlib.sha256(pw.encode()).hexdigest()
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #1e293b; }
+::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+</style>
+""", unsafe_allow_html=True)
 
-def _load_users() -> dict:
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE) as f:
-            return json.load(f)
-    return {}
-
-def _save_users(users: dict):
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f)
-
-# ── Session defaults ─────────────────────────────────────────────────────────
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+# ── Session State Init ─────────────────────────────────────────────────────────
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "auth_tab" not in st.session_state:
-    st.session_state.auth_tab = "login"
+if "page" not in st.session_state:
+    st.session_state.page = "login"
 
-# ── Auth screen ──────────────────────────────────────────────────────────────
-def show_auth():
-    col1, col2, col3 = st.columns([1, 1.6, 1])
-    with col2:
-        st.markdown(
-            """
-            <div style="text-align:center;padding:32px 0 24px;">
-              <div style="font-size:44px;">📊</div>
-              <h1 style="margin:8px 0 4px;font-size:24px;font-weight:700;color:#0f172a;">
-                HR Analytics
-              </h1>
-              <p style="margin:0;font-size:14px;color:#64748b;">
-                AtliQ Technologies · Workforce Intelligence
-              </p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        tab_login, tab_signup = st.tabs(["Sign In", "Create Account"])
-
-        with tab_login:
-            st.markdown("<br>", unsafe_allow_html=True)
-            uname = st.text_input("Username", key="li_user", placeholder="Enter your username")
-            pw    = st.text_input("Password", type="password", key="li_pw",
-                                  placeholder="Enter your password")
-            if st.button("Sign In →", type="primary", use_container_width=True, key="li_btn"):
-                users = _load_users()
-                if uname in users and users[uname] == _hash(pw):
-                    st.session_state.logged_in = True
-                    st.session_state.username  = uname
-                    st.rerun()
-                else:
-                    st.error("Invalid credentials. Please try again.")
-
-        with tab_signup:
-            st.markdown("<br>", unsafe_allow_html=True)
-            new_u  = st.text_input("Choose username", key="su_user",
-                                   placeholder="e.g. hr_manager")
-            new_p  = st.text_input("Choose password", type="password", key="su_pw",
-                                   placeholder="Minimum 6 characters")
-            new_p2 = st.text_input("Confirm password", type="password", key="su_pw2",
-                                   placeholder="Re-enter password")
-            if st.button("Create Account", type="primary", use_container_width=True, key="su_btn"):
-                if not new_u.strip():
-                    st.error("Username cannot be empty.")
-                elif len(new_p) < 6:
-                    st.error("Password must be at least 6 characters.")
-                elif new_p != new_p2:
-                    st.error("Passwords do not match.")
-                else:
-                    users = _load_users()
-                    if new_u in users:
-                        st.error("Username already exists. Please choose another.")
-                    else:
-                        users[new_u] = _hash(new_p)
-                        _save_users(users)
-                        st.success("Account created! Please sign in.")
-
-        st.markdown(
-            """
-            <p style="text-align:center;font-size:12px;color:#94a3b8;margin-top:24px;">
-              🔒 Session-secured · SHA-256 authentication
-            </p>
-            """,
-            unsafe_allow_html=True,
-        )
-
-# ── App header (shown when logged in) ───────────────────────────────────────
-def show_header():
-    col_l, col_r = st.columns([5, 1])
-    with col_l:
-        st.markdown(
-            f"""
-            <div style="display:flex;align-items:center;gap:12px;padding:4px 0 16px;">
-              <span style="font-size:28px;">📊</span>
-              <div>
-                <h1 style="margin:0;font-size:22px;font-weight:700;color:#0f172a;line-height:1.2;">
-                  HR Analytics Dashboard
-                </h1>
-                <p style="margin:0;font-size:13px;color:#64748b;">
-                  AtliQ Technologies · Apr–Jun 2022 · Welcome, <strong>{st.session_state.username}</strong>
-                </p>
-              </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with col_r:
-        if st.button("Sign Out", key="signout"):
-            st.session_state.logged_in = False
-            st.session_state.username  = ""
-            st.rerun()
-
-# ── Main ─────────────────────────────────────────────────────────────────────
-def main():
-    if not st.session_state.logged_in:
-        show_auth()
-        return
-
-    show_header()
-
-    with st.spinner("Loading attendance data…"):
-        df_long, emp_metrics = load_data(VERSION)
-
-    if df_long is None:
-        st.error(
-            "**Attendance Sheet.xlsx not found.**  \n"
-            "Place the file in the same directory as app.py and restart the app."
-        )
-        return
-
-    show_dashboard(df_long, emp_metrics)
-
-if __name__ == "__main__":
-    main()
+# ── Router ─────────────────────────────────────────────────────────────────────
+if st.session_state.authenticated:
+    show_dashboard()
+else:
+    if st.session_state.page == "login":
+        login_page()
+    else:
+        signup_page()
