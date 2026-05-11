@@ -54,10 +54,19 @@ section[data-testid="stSidebar"] * { color: #e2e8f0 !important; }
 section[data-testid="stSidebar"] .stSelectbox label { color: #94a3b8 !important; }
 
 /* Tabs */
+
+div[data-testid="stTabs"] {
+    overflow: visible !important;
+}
+
 div[data-testid="stTabs"] button {
     font-weight: 500;
     border-radius: 8px 8px 0 0;
+    height: auto !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
 }
+
 div[data-testid="stTabs"] button[aria-selected="true"] {
     color: #6366f1 !important;
     border-bottom: 2px solid #6366f1 !important;
