@@ -113,23 +113,21 @@ def render_absenteeism_alerts(df: pd.DataFrame):
             "Month", ["All Months"] + sorted(df["Month"].unique().tolist()), key="alert_month"
         )
 
-    # Clean columns
-filtered["Employee Code"] = filtered["Employee Code"].astype(str).str.strip()
-filtered["Name"] = filtered["Name"].astype(str).str.strip().str.title()
+   
+ filtered = df if selected_month == "All Months" else df[df["Month"] == selected_month]
+    work_days = filtered[~filtered["Status"].isin(["WO", "HO"])]
 
-work_days = filtered[~filtered["Status"].isin(["WO", "HO"])]
-
-emp_stats = (
-    work_days.groupby("Employee Code")
-    .agg(
-        Name=("Name", "first"),
-        Present=("Status", lambda x: x.isin(["P", "WFH"]).sum()),
-        Sick=("Status", lambda x: x.isin(["SL", "HSL"]).sum()),
-        LWP=("Status", lambda x: x.isin(["LWP", "HLWP"]).sum()),
-        Total_Working=("Status", "count"),
+    emp_stats = (
+        work_days.groupby(["Employee Code", "Name"])
+        .agg(
+            Present=("Status", lambda x: x.isin(["P", "WFH"]).sum()),
+            Sick=("Status", lambda x: x.isin(["SL", "HSL"]).sum()),
+            LWP=("Status", lambda x: x.isin(["LWP", "HLWP"]).sum()),
+            Total_Working=("Status", "count"),
+        )
+        .reset_index()
     )
-    .reset_index()
-)
+    emp_stats["Attendance %"] = (emp_stats["Present"] / emp_stats["Total_Working"] * 100).round(1)
 
 emp_stats["Attendance %"] = (
     emp_stats["Present"] / emp_stats["Total_Working"] * 100
