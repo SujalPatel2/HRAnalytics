@@ -115,7 +115,7 @@ def render_absenteeism_alerts(df: pd.DataFrame):
 
    
  filtered = df if selected_month == "All Months" else df[df["Month"] == selected_month]
-    work_days = filtered[~filtered["Status"].isin(["WO", "HO"])]
+ work_days = filtered[~filtered["Status"].isin(["WO", "HO"])]
 
     emp_stats = (
         work_days.groupby(["Employee Code", "Name"])
