@@ -54,7 +54,6 @@ section[data-testid="stSidebar"] * { color: #e2e8f0 !important; }
 section[data-testid="stSidebar"] .stSelectbox label { color: #94a3b8 !important; }
 
 /* Tabs */
-
 div[data-testid="stTabs"] {
     overflow: visible !important;
 }
@@ -72,6 +71,12 @@ div[data-testid="stTabs"] button[aria-selected="true"] {
     border-bottom: 2px solid #6366f1 !important;
 }
 
+/* Main background */
+.main { background: #0f172a; }
+
+.block-container {
+    padding-top: 4rem !important;
+}
 /* DataFrames */
 div[data-testid="stDataFrame"] {
     border-radius: 8px;
