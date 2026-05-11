@@ -127,34 +127,14 @@ def render_absenteeism_alerts(df: pd.DataFrame):
 
     at_risk = emp_stats[emp_stats["Attendance %"] < threshold].sort_values("Attendance %")
     safe = emp_stats[emp_stats["Attendance %"] >= threshold]
-# Count unique employees correctly
-total_employees = filtered["Employee Code"].nunique()
 
-# KPI Cards
-c1, c2, c3, c4 = st.columns(4)
-
-# Total Employees (correct count)
-c1.metric("Total Employees", total_employees)
-
-# Employees below attendance threshold
-c2.metric(
-    f"🔴 Below {threshold}%",
-    len(at_risk),
-    delta=f"{len(at_risk)/max(total_employees,1)*100:.0f}% of workforce",
-    delta_color="inverse"
-)
-
-# Employees above attendance threshold
-c3.metric(
-    "✅ Above Threshold",
-    total_employees - len(at_risk)
-)
-
-# Average attendance
-c4.metric(
-    "Avg Attendance",
-    f"{emp_stats['Attendance %'].mean():.1f}%"
-)
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total Employees", len(emp_stats))
+    c2.metric(f"🔴 Below {threshold}%", len(at_risk),
+              delta=f"{len(at_risk)/max(len(emp_stats),1)*100:.0f}% of workforce",
+              delta_color="inverse")
+    c3.metric("✅ Above Threshold", len(safe))
+    c4.metric("Avg Attendance", f"{emp_stats['Attendance %'].mean():.1f}%")
 
     st.divider()
 
