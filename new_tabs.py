@@ -12,9 +12,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 
-# ═══════════════════════════════════════════════════════════════
-# 1.  LEAVE BREAKDOWN TAB
-# ═══════════════════════════════════════════════════════════════
 def render_leave_breakdown(df: pd.DataFrame):
     st.header("📊 Leave Breakdown Analysis")
     st.caption("Detailed view of leave types across employees and months.")
@@ -60,7 +57,7 @@ def render_leave_breakdown(df: pd.DataFrame):
         )
         fig_pie.update_traces(textposition="inside", textinfo="percent+label")
         fig_pie.update_layout(height=420)
-        st.plotly_chart(fig_pie, width='stretch')
+        st.plotly_chart(fig_pie, use_container_width=True)
 
         monthly_leave = df[df["Status"].isin(list(leave_codes.keys()))].copy()
         monthly_leave["Leave Type"] = monthly_leave["Status"].map(leave_codes)
@@ -72,7 +69,7 @@ def render_leave_breakdown(df: pd.DataFrame):
             color_discrete_sequence=px.colors.qualitative.Pastel,
         )
         fig_bar.update_layout(height=400)
-        st.plotly_chart(fig_bar, width='stretch')
+        st.plotly_chart(fig_bar, use_container_width=True)
 
     else:
         emp_leave = leave_df.groupby(["Name", "Leave Type"]).size().reset_index(name="Days")
@@ -85,7 +82,7 @@ def render_leave_breakdown(df: pd.DataFrame):
             barmode="stack", color_discrete_sequence=px.colors.qualitative.Set2,
         )
         fig_emp.update_layout(height=450, xaxis_tickangle=-35)
-        st.plotly_chart(fig_emp, width='stretch')
+        st.plotly_chart(fig_emp, use_container_width=True)
 
     st.divider()
     m1, m2, m3, m4 = st.columns(4)
@@ -113,9 +110,8 @@ def render_absenteeism_alerts(df: pd.DataFrame):
             "Month", ["All Months"] + sorted(df["Month"].unique().tolist()), key="alert_month"
         )
 
-   
- filtered = df if selected_month == "All Months" else df[df["Month"] == selected_month]
- work_days = filtered[~filtered["Status"].isin(["WO", "HO"])]
+    filtered = df if selected_month == "All Months" else df[df["Month"] == selected_month]
+    work_days = filtered[~filtered["Status"].isin(["WO", "HO"])]
 
     emp_stats = (
         work_days.groupby(["Employee Code", "Name"])
@@ -128,10 +124,6 @@ def render_absenteeism_alerts(df: pd.DataFrame):
         .reset_index()
     )
     emp_stats["Attendance %"] = (emp_stats["Present"] / emp_stats["Total_Working"] * 100).round(1)
-
-emp_stats["Attendance %"] = (
-    emp_stats["Present"] / emp_stats["Total_Working"] * 100
-).round(1)
 
     at_risk = emp_stats[emp_stats["Attendance %"] < threshold].sort_values("Attendance %")
     safe = emp_stats[emp_stats["Attendance %"] >= threshold]
@@ -162,7 +154,7 @@ emp_stats["Attendance %"] = (
         display_df.columns = ["Name", "Emp Code", "Attendance %", "Sick Days", "LWP Days", "Working Days"]
         st.dataframe(
             display_df.style.map(color_attendance, subset=["Attendance %"]),
-            width='stretch', hide_index=True,
+            use_container_width=True, hide_index=True,
         )
 
         fig = px.bar(
@@ -174,7 +166,7 @@ emp_stats["Attendance %"] = (
                       annotation_text=f"Threshold: {threshold}%")
         fig.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
         fig.update_layout(height=max(350, len(at_risk) * 28), yaxis={"categoryorder": "total ascending"})
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
 
         st.download_button(
             "📥 Export At-Risk List as CSV",
@@ -193,7 +185,7 @@ emp_stats["Attendance %"] = (
     fig_hist.add_vline(x=threshold, line_dash="dash", line_color="red",
                        annotation_text=f"Alert line: {threshold}%")
     fig_hist.update_layout(height=320)
-    st.plotly_chart(fig_hist, width='stretch')
+    st.plotly_chart(fig_hist, use_container_width=True)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -249,7 +241,7 @@ def render_monthly_trends(df: pd.DataFrame):
         ))
     fig_line.update_layout(title="Month-wise Trends: Attendance, WFH & Leaves",
                            yaxis_title="Percentage (%)", height=420)
-    st.plotly_chart(fig_line, width='stretch')
+    st.plotly_chart(fig_line, use_container_width=True)
 
     # Grouped bar
     melted = kpi_df.melt(id_vars="Month", var_name="Metric", value_name="Value")
@@ -257,11 +249,11 @@ def render_monthly_trends(df: pd.DataFrame):
                      title="Side-by-Side Monthly Comparison",
                      color_discrete_sequence=px.colors.qualitative.Set1, text_auto=".1f")
     fig_bar.update_layout(height=400)
-    st.plotly_chart(fig_bar, width='stretch')
+    st.plotly_chart(fig_bar, use_container_width=True)
 
     st.divider()
     st.subheader("📋 Summary Table")
     st.dataframe(
         kpi_df.set_index("Month").style.highlight_max(color="lightgreen").highlight_min(color="#ffcccc"),
-        width='stretch',
+        use_container_width=True,
     )
